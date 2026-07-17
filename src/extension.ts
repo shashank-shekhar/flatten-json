@@ -10,7 +10,7 @@ export function deactivate() {}
 
 async function runFlattenCommand(): Promise<void> {
 	const source = await vscode.window.showQuickPick(
-		['Active Editor', 'Clipboard', 'Pick a File...'],
+		['Active Document', 'Active Selection', 'Clipboard', 'Pick a File...'],
 		{ placeHolder: 'Select the JSON source to flatten' }
 	);
 	if (!source) {
@@ -39,13 +39,25 @@ async function runFlattenCommand(): Promise<void> {
 
 async function getSourceText(source: string): Promise<string | undefined> {
 	switch (source) {
-		case 'Active Editor': {
+		case 'Active Document': {
 			const editor = vscode.window.activeTextEditor;
 			if (!editor) {
 				vscode.window.showErrorMessage('No active editor to read JSON from.');
 				return undefined;
 			}
 			return editor.document.getText();
+		}
+		case 'Active Selection': {
+			const editor = vscode.window.activeTextEditor;
+			if (!editor) {
+				vscode.window.showErrorMessage('No active editor to read JSON from.');
+				return undefined;
+			}
+			if (editor.selection.isEmpty) {
+				vscode.window.showErrorMessage('No text is selected.');
+				return undefined;
+			}
+			return editor.document.getText(editor.selection);
 		}
 		case 'Clipboard': {
 			const text = await vscode.env.clipboard.readText();
