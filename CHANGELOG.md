@@ -8,3 +8,4 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Initial release
 - Add a key-separator picker (`:`, `.`, `__`, `/`, `_`, `-`) shown after choosing a JSON source, with the last-used separator remembered and offered first on the next run.
+- Retry parsing wrapped in `{ }` when the source is invalid JSON only because its surrounding braces are missing.

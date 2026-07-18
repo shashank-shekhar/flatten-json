@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { flattenJson } from './flatten';
+import { flattenJson, parseJson } from './flatten';
 
 export function activate(context: vscode.ExtensionContext) {
 	const disposable = vscode.commands.registerCommand('flatten-json.flatten', () => runFlattenCommand(context));
@@ -29,7 +29,7 @@ async function runFlattenCommand(context: vscode.ExtensionContext): Promise<void
 
 	let flattened: ReturnType<typeof flattenJson>;
 	try {
-		const parsed: unknown = JSON.parse(rawText);
+		const parsed: unknown = parseJson(rawText);
 		flattened = flattenJson(parsed, separator);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);

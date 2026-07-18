@@ -6,6 +6,19 @@ function isPlainObject(value: unknown): value is { [key: string]: JsonValue } {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+export function parseJson(rawText: string): unknown {
+	try {
+		return JSON.parse(rawText);
+	} catch (err) {
+		// A selection often copies just an object's body without its braces; retry wrapped before giving up.
+		try {
+			return JSON.parse(`{${rawText}}`);
+		} catch {
+			throw err;
+		}
+	}
+}
+
 function walk(value: JsonValue, path: string, separator: string, output: FlattenedJson): void {
 	if (Array.isArray(value)) {
 		value.forEach((item, index) => {

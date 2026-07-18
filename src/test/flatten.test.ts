@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { flattenJson } from '../flatten';
+import { flattenJson, parseJson } from '../flatten';
 
 suite('flattenJson', () => {
 	test('flattens single-level object', () => {
@@ -78,5 +78,31 @@ suite('flattenJson', () => {
 
 	test('throws when an empty separator causes two distinct paths to collide', () => {
 		assert.throws(() => flattenJson({ A: { B: 1 }, AB: 2 }, ''));
+	});
+});
+
+suite('parseJson', () => {
+	test('parses well-formed JSON as-is', () => {
+		assert.deepStrictEqual(parseJson('{"Foo":"bar"}'), { Foo: 'bar' });
+	});
+
+	test('wraps and parses an object body missing its surrounding braces', () => {
+		assert.deepStrictEqual(
+			parseJson('"Foo": "bar", "Baz": { "Qux": 1 }'),
+			{ Foo: 'bar', Baz: { Qux: 1 } }
+		);
+	});
+
+	test('throws the original error when wrapping does not fix the input', () => {
+		let originalMessage: string | undefined;
+		try {
+			JSON.parse('[1, 2,]');
+		} catch (err) {
+			originalMessage = err instanceof Error ? err.message : String(err);
+		}
+		assert.throws(
+			() => parseJson('[1, 2,]'),
+			(err: unknown) => err instanceof Error && err.message === originalMessage
+		);
 	});
 });

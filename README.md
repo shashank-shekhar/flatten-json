@@ -10,6 +10,7 @@ Flatten nested JSON into the colon-delimited key format .NET expects for `secret
 - **Preserves value types** — strings, numbers, booleans, and `null` come through as-is, not stringified.
 - **Skips empty containers** — empty objects and arrays are omitted instead of producing orphaned keys.
 - **Non-destructive** — results always open in a new, unsaved JSON tab. Your original file, selection, or clipboard is never modified.
+- **Forgives a missing outer `{ }`** — if you select just an object's properties without the surrounding braces, it's wrapped and flattened automatically.
 
 ### Example
 
