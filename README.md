@@ -1,43 +1,42 @@
 # FlattenJson
 
-Flatten nested JSON into flat, delimited keys — the format many config systems expect instead of nested objects. For example, .NET's `secrets.json` and `IConfiguration` use colon-delimited keys, so you'd otherwise be manually rewriting `appsettings.json` blocks by hand when moving values into user secrets.
+Flatten nested JSON into the flat, delimited keys config systems expect — colon for .NET's `secrets.json`/`IConfiguration`, `__` for Docker/Kubernetes/ASP.NET Core environment-variable overrides — instead of rewriting nested blocks by hand.
 
-## Features
+![Flatten JSON demo](demo.gif)
 
-- **Flattens nested objects and arrays** into flat, single-level keys — `:` by default, matching the format .NET's configuration system and `secrets.json` use.
-- **Choose your separator** — colon for dotnet `secrets.json`/`IConfiguration`, dot for Java/Spring properties, double underscore for env var overrides, slash for AWS SSM Parameter Store, or single underscore/hyphen. Your last choice is remembered and offered first next time.
-- **Four ways to grab your JSON** — flatten the active document, just your current selection, your clipboard contents, or pick any `.json` file from disk.
-- **Preserves value types** — strings, numbers, booleans, and `null` come through as-is, not stringified.
-- **Skips empty containers** — empty objects and arrays are omitted instead of producing orphaned keys.
-- **Non-destructive** — results always open in a new, unsaved JSON tab. Your original file, selection, or clipboard is never modified.
-- **Forgives a missing outer `{ }`** — if you select just an object's properties without the surrounding braces, it's wrapped and flattened automatically.
+## Example
 
-### Example
-
-Input:
+Input — paste just the properties, no surrounding `{ }` required:
 
 ```json
-{
-  "ConnectionStrings": {
-    "Default": "Server=.;Database=MyApp;"
-  },
-  "ApiKeys": {
-    "Stripe": "sk_test_123",
-    "SendGrid": "SG.abc123"
-  },
-  "AllowedHosts": ["localhost", "example.com"]
-}
+// { surrounding braces are optional — making it easier to translate a subsection of you json
+"ConnectionStrings": {
+  "Default": "Server=.;Database=MyApp;"
+},
+"ApiKeys": {
+  "Stripe": "sk_test_123",
+  "SendGrid": "SG.abc123"
+},
+"AllowedHosts": ["localhost", [], "example.com"],  // empty containers (like this array) are skipped entirely
+"Retries": 3,      // numbers, booleans, and null are preserved as-is, not stringified
+"Debug": false,
+"Timeout": null
+// } Output is always a valid json with surrounding {} braces. 
 ```
 
-Output:
+Output — flattened with the default `:` separator (pick another via the separator picker):
 
-```json
+```diff
 {
   "ConnectionStrings:Default": "Server=.;Database=MyApp;",
   "ApiKeys:Stripe": "sk_test_123",
   "ApiKeys:SendGrid": "SG.abc123",
   "AllowedHosts:0": "localhost",
-  "AllowedHosts:1": "example.com"
+- "AllowedHosts:1"                  // never produced — the empty array contributes no key, so this index is skipped
+  "AllowedHosts:2": "example.com",
+  "Retries": 3,
+  "Debug": false,
+  "Timeout": null
 }
 ```
 
