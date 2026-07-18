@@ -9,7 +9,7 @@ Flatten nested JSON into the flat, delimited keys config systems expect — colo
 Input — paste just the properties, no surrounding `{ }` required:
 
 ```json
-// { surrounding braces are optional — making it easier to translate a subsection of you json
+// { surrounding braces are optional — making it easier to translate a subsection of your json
 "ConnectionStrings": {
   "Default": "Server=.;Database=MyApp;"
 },
