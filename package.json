@@ -1,14 +1,20 @@
 {
   "name": "flatten-json",
   "displayName": "FlattenJson",
-  "description": "Convert json settings to dotnet secrets.json format",
-  "version": "0.0.1",
+  "description": "Flatten nested JSON into flat, delimited keys for config systems like dotnet secrets.json, environment variables, and more.",
+  "version": "1.0.0",
+  "publisher": "shashank-shekhar",
   "icon": "icon.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shashank-shekhar/flatten-json"
+  },
   "engines": {
     "vscode": "^1.125.0"
   },
   "categories": [
-    "Other"
+    "Formatters"
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
@@ -22,30 +28,32 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run package",
-    "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+    "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "pretest": "pnpm run compile-tests && pnpm run compile",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "vscode:prepublish": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
-    "@types/vscode": "^1.125.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "24.x",
-    "typescript-eslint": "^8.61.1",
-    "eslint": "^10.5.0",
+    "@types/node": "~24.13.3",
+    "@types/vscode": "^1.125.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
+    "@vscode/vsce": "^3.9.2",
     "esbuild": "^0.28.1",
+    "eslint": "^10.7.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^6.0.3",
-    "@vscode/test-cli": "^0.0.15",
-    "@vscode/test-electron": "^3.0.0"
+    "typescript-eslint": "^8.64.0"
   },
   "overrides": {
     "diff": "^8.0.4",
