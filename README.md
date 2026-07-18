@@ -1,6 +1,6 @@
 # FlattenJson
 
-Flatten nested JSON into the colon-delimited key format .NET expects for `secrets.json` and `IConfiguration` — no more manually rewriting `appsettings.json` blocks by hand when moving values into user secrets.
+Flatten nested JSON into flat, delimited keys — the format many config systems expect instead of nested objects. For example, .NET's `secrets.json` and `IConfiguration` use colon-delimited keys, so you'd otherwise be manually rewriting `appsettings.json` blocks by hand when moving values into user secrets.
 
 ## Features
 

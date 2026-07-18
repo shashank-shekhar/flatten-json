@@ -102,12 +102,12 @@ interface SeparatorQuickPickItem extends vscode.QuickPickItem {
 const LAST_SEPARATOR_KEY = 'flatten-json.lastSeparator';
 
 const SEPARATOR_OPTIONS: readonly SeparatorQuickPickItem[] = [
-	{ label: ':', description: 'Colon — dotnet secrets.json / IConfiguration', separator: ':' },
-	{ label: '.', description: 'Dot — Java / Spring properties', separator: '.' },
-	{ label: '__', description: 'Double underscore — env var overrides', separator: '__' },
-	{ label: '/', description: 'Slash — AWS SSM Parameter Store', separator: '/' },
-	{ label: '_', description: 'Single underscore', separator: '_' },
-	{ label: '-', description: 'Hyphen', separator: '-' },
+	{ label: ':', description: '[Colon]', separator: ':' },
+	{ label: '.', description: '[Dot]', separator: '.' },
+	{ label: '__', description: '[Double underscore]', separator: '__' },
+	{ label: '/', description: '[Slash]', separator: '/' },
+	{ label: '_', description: '[Single underscore]', separator: '_' },
+	{ label: '-', description: '[Hyphen]', separator: '-' },
 ];
 
 async function getSeparator(context: vscode.ExtensionContext): Promise<string | undefined> {
