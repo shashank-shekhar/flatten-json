@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
-import { flattenToSecrets } from './flatten';
+import { flattenJson } from './flatten';
 
 export function activate(context: vscode.ExtensionContext) {
-	const disposable = vscode.commands.registerCommand('to-secrets.flatten', runFlattenCommand);
+	const disposable = vscode.commands.registerCommand('flatten-json.flatten', () => runFlattenCommand(context));
 	context.subscriptions.push(disposable);
 }
 
 export function deactivate() {}
 
-async function runFlattenCommand(): Promise<void> {
+async function runFlattenCommand(context: vscode.ExtensionContext): Promise<void> {
 	const source = await vscode.window.showQuickPick(
 		['Active Document', 'Active Selection', 'Clipboard', 'Pick a File...'],
 		{ placeHolder: 'Select the JSON source to flatten' }
@@ -22,10 +22,15 @@ async function runFlattenCommand(): Promise<void> {
 		return;
 	}
 
-	let flattened: ReturnType<typeof flattenToSecrets>;
+	const separator = await getSeparator(context);
+	if (separator === undefined) {
+		return;
+	}
+
+	let flattened: ReturnType<typeof flattenJson>;
 	try {
 		const parsed: unknown = JSON.parse(rawText);
-		flattened = flattenToSecrets(parsed);
+		flattened = flattenJson(parsed, separator);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
 		vscode.window.showErrorMessage(`Could not flatten JSON: ${message}`);
@@ -88,4 +93,37 @@ async function getSourceText(source: string): Promise<string | undefined> {
 		default:
 			return undefined;
 	}
+}
+
+interface SeparatorQuickPickItem extends vscode.QuickPickItem {
+	readonly separator: string;
+}
+
+const LAST_SEPARATOR_KEY = 'flatten-json.lastSeparator';
+
+const SEPARATOR_OPTIONS: readonly SeparatorQuickPickItem[] = [
+	{ label: ':', description: 'Colon — dotnet secrets.json / IConfiguration', separator: ':' },
+	{ label: '.', description: 'Dot — Java / Spring properties', separator: '.' },
+	{ label: '__', description: 'Double underscore — env var overrides', separator: '__' },
+	{ label: '/', description: 'Slash — AWS SSM Parameter Store', separator: '/' },
+	{ label: '_', description: 'Single underscore', separator: '_' },
+	{ label: '-', description: 'Hyphen', separator: '-' },
+];
+
+async function getSeparator(context: vscode.ExtensionContext): Promise<string | undefined> {
+	const lastSeparator = context.globalState.get<string>(LAST_SEPARATOR_KEY);
+	const items = lastSeparator
+		? [
+			...SEPARATOR_OPTIONS.filter(o => o.separator === lastSeparator),
+			...SEPARATOR_OPTIONS.filter(o => o.separator !== lastSeparator),
+		]
+		: SEPARATOR_OPTIONS;
+
+	const picked = await vscode.window.showQuickPick(items, { placeHolder: 'Select the key separator' });
+	if (!picked) {
+		return undefined;
+	}
+
+	await context.globalState.update(LAST_SEPARATOR_KEY, picked.separator);
+	return picked.separator;
 }

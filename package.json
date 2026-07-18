@@ -1,8 +1,9 @@
 {
-  "name": "to-secrets",
-  "displayName": "To Secrets",
+  "name": "flatten-json",
+  "displayName": "FlattenJson",
   "description": "Convert json settings to dotnet secrets.json format",
   "version": "0.0.1",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -14,9 +15,9 @@
   "contributes": {
     "commands": [
       {
-        "command": "to-secrets.flatten",
+        "command": "flatten-json.flatten",
         "title": "Flatten JSON",
-        "category": "To Secrets"
+        "category": "FlattenJson"
       }
     ]
   },

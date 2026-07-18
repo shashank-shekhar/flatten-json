@@ -1,71 +1,71 @@
-# To Secrets
+# FlattenJson
 
-This is the README for your extension "to-secrets". After writing up a brief description, we recommend including the following sections.
+Flatten nested JSON into the colon-delimited key format .NET expects for `secrets.json` and `IConfiguration` — no more manually rewriting `appsettings.json` blocks by hand when moving values into user secrets.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Flattens nested objects and arrays** into flat, single-level keys — `:` by default, matching the format .NET's configuration system and `secrets.json` use.
+- **Choose your separator** — colon for dotnet `secrets.json`/`IConfiguration`, dot for Java/Spring properties, double underscore for env var overrides, slash for AWS SSM Parameter Store, or single underscore/hyphen. Your last choice is remembered and offered first next time.
+- **Four ways to grab your JSON** — flatten the active document, just your current selection, your clipboard contents, or pick any `.json` file from disk.
+- **Preserves value types** — strings, numbers, booleans, and `null` come through as-is, not stringified.
+- **Skips empty containers** — empty objects and arrays are omitted instead of producing orphaned keys.
+- **Non-destructive** — results always open in a new, unsaved JSON tab. Your original file, selection, or clipboard is never modified.
 
-For example if there is an image subfolder under your extension project workspace:
+### Example
 
-\!\[feature X\]\(images/feature-x.png\)
+Input:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+```json
+{
+  "ConnectionStrings": {
+    "Default": "Server=.;Database=MyApp;"
+  },
+  "ApiKeys": {
+    "Stripe": "sk_test_123",
+    "SendGrid": "SG.abc123"
+  },
+  "AllowedHosts": ["localhost", "example.com"]
+}
+```
+
+Output:
+
+```json
+{
+  "ConnectionStrings:Default": "Server=.;Database=MyApp;",
+  "ApiKeys:Stripe": "sk_test_123",
+  "ApiKeys:SendGrid": "SG.abc123",
+  "AllowedHosts:0": "localhost",
+  "AllowedHosts:1": "example.com"
+}
+```
+
+## Usage
+
+1. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`).
+2. Run **Flatten JSON**.
+3. Choose a source: **Active Document**, **Active Selection**, **Clipboard**, or **Pick a File...**.
+4. Choose a separator: **:**, **.**, **__**, **/**, **_**, or **-**. Your last pick is offered first.
+5. The flattened result opens in a new unsaved JSON tab — copy it wherever you need it.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+None — works out of the box.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+This extension does not contribute any settings.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ---
 
-## Following extension guidelines
+## Development
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+- `pnpm install` — install dependencies
+- `pnpm run watch` — build in watch mode
+- `pnpm test` — run the test suite
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+See `CLAUDE.md` for architecture notes.
