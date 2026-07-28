@@ -9,14 +9,59 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() {}
 
+const LAST_SOURCE_KEY = 'flatten-json.lastSource';
+
+const SOURCE_OPTIONS: readonly vscode.QuickPickItem[] = [
+	{ label: 'Active Document' },
+	{ label: 'Active Selection' },
+	{ label: 'Clipboard' },
+	{ label: 'Pick a File...' },
+];
+
+// Show a quick pick whose last-accepted option is remembered and pre-highlighted (so pressing
+// Enter repeats it) without reordering the list. Returns undefined if the user dismisses it.
+async function pickRemembered<T extends vscode.QuickPickItem>(
+	context: vscode.ExtensionContext,
+	stateKey: string,
+	items: readonly T[],
+	idOf: (item: T) => string,
+	placeHolder: string,
+): Promise<T | undefined> {
+	const lastId = context.globalState.get<string>(stateKey);
+	const active = items.find(item => idOf(item) === lastId) ?? items[0];
+
+	const quickPick = vscode.window.createQuickPick<T>();
+	quickPick.items = items;
+	quickPick.placeholder = placeHolder;
+	quickPick.activeItems = active ? [active] : [];
+
+	try {
+		const picked = await new Promise<T | undefined>(resolve => {
+			quickPick.onDidAccept(() => resolve(quickPick.selectedItems[0]));
+			quickPick.onDidHide(() => resolve(undefined));
+			quickPick.show();
+		});
+		if (picked) {
+			await context.globalState.update(stateKey, idOf(picked));
+		}
+		return picked;
+	} finally {
+		quickPick.dispose();
+	}
+}
+
 async function runFlattenCommand(context: vscode.ExtensionContext): Promise<void> {
-	const source = await vscode.window.showQuickPick(
-		['Active Document', 'Active Selection', 'Clipboard', 'Pick a File...'],
-		{ placeHolder: 'Select the JSON source to flatten' }
+	const sourcePick = await pickRemembered(
+		context,
+		LAST_SOURCE_KEY,
+		SOURCE_OPTIONS,
+		item => item.label,
+		'Select the JSON source to flatten',
 	);
-	if (!source) {
+	if (!sourcePick) {
 		return;
 	}
+	const source = sourcePick.label;
 
 	const rawText = await getSourceText(source);
 	if (rawText === undefined) {
@@ -121,23 +166,14 @@ const SELECTION_MODE_OPTIONS: readonly SelectionModeQuickPickItem[] = [
 ];
 
 async function getSelectionMode(context: vscode.ExtensionContext): Promise<SelectionMode | undefined> {
-	const lastMode = context.globalState.get<SelectionMode>(LAST_SELECTION_MODE_KEY);
-	const items = lastMode
-		? [
-			...SELECTION_MODE_OPTIONS.filter(o => o.mode === lastMode),
-			...SELECTION_MODE_OPTIONS.filter(o => o.mode !== lastMode),
-		]
-		: SELECTION_MODE_OPTIONS;
-
-	const picked = await vscode.window.showQuickPick(items, {
-		placeHolder: 'Flatten the selection relative to itself or to the whole document?',
-	});
-	if (!picked) {
-		return undefined;
-	}
-
-	await context.globalState.update(LAST_SELECTION_MODE_KEY, picked.mode);
-	return picked.mode;
+	const picked = await pickRemembered(
+		context,
+		LAST_SELECTION_MODE_KEY,
+		SELECTION_MODE_OPTIONS,
+		item => item.mode,
+		'Flatten the selection relative to itself or to the whole document?',
+	);
+	return picked?.mode;
 }
 
 // The path of the selected value within the whole document, used to prefix the flattened keys.
@@ -169,19 +205,12 @@ const SEPARATOR_OPTIONS: readonly SeparatorQuickPickItem[] = [
 ];
 
 async function getSeparator(context: vscode.ExtensionContext): Promise<string | undefined> {
-	const lastSeparator = context.globalState.get<string>(LAST_SEPARATOR_KEY);
-	const items = lastSeparator
-		? [
-			...SEPARATOR_OPTIONS.filter(o => o.separator === lastSeparator),
-			...SEPARATOR_OPTIONS.filter(o => o.separator !== lastSeparator),
-		]
-		: SEPARATOR_OPTIONS;
-
-	const picked = await vscode.window.showQuickPick(items, { placeHolder: 'Select the key separator' });
-	if (!picked) {
-		return undefined;
-	}
-
-	await context.globalState.update(LAST_SEPARATOR_KEY, picked.separator);
-	return picked.separator;
+	const picked = await pickRemembered(
+		context,
+		LAST_SEPARATOR_KEY,
+		SEPARATOR_OPTIONS,
+		item => item.separator,
+		'Select the key separator',
+	);
+	return picked?.separator;
 }

@@ -7,7 +7,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [Unreleased]
 
 - Tolerate JSONC in the source — trailing commas and `//` / `/* */` comments (common in .NET config and VS Code JSON) are now accepted, via `jsonc-parser`. Also handle a dangling trailing comma on a selection pulled out of an array (e.g. a single `{ … },` element).
-- When flattening an **Active Selection**, ask whether to flatten it as-is or with the absolute path from the document root, so a selected nested value produces fully-qualified keys (e.g. `Parent:Child`). The choice is remembered and offered first next time.
+- When flattening an **Active Selection**, ask whether to flatten it as-is or with the absolute path from the document root, so a selected nested value produces fully-qualified keys (e.g. `Parent:Child`).
+- Every picker (source, selection mode, separator) now remembers the last choice and pre-selects it, so you can press Enter through the dialogs to repeat the previous run. Options keep a fixed order (no more reordering the last-used one to the top).
 
 ## [1.0.0] - 2026-07-18
 
