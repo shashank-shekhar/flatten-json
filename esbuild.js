@@ -34,6 +34,9 @@ async function main() {
 		sourcemap: !production,
 		sourcesContent: false,
 		platform: 'node',
+		// Prefer ESM entry points: jsonc-parser's UMD build uses a factory-scoped `require`
+		// that esbuild can't inline, leaving broken `require("./impl/format")` calls at runtime.
+		mainFields: ['module', 'main'],
 		outfile: 'dist/extension.js',
 		external: ['vscode'],
 		logLevel: 'silent',

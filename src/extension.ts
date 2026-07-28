@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { getLocation } from 'jsonc-parser';
 import { flattenJson, parseJson } from './flatten';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -22,6 +23,17 @@ async function runFlattenCommand(context: vscode.ExtensionContext): Promise<void
 		return;
 	}
 
+	let prefix: (string | number)[] = [];
+	if (source === 'Active Selection') {
+		const mode = await getSelectionMode(context);
+		if (mode === undefined) {
+			return;
+		}
+		if (mode === 'absolute') {
+			prefix = getSelectionPrefix();
+		}
+	}
+
 	const separator = await getSeparator(context);
 	if (separator === undefined) {
 		return;
@@ -30,7 +42,7 @@ async function runFlattenCommand(context: vscode.ExtensionContext): Promise<void
 	let flattened: ReturnType<typeof flattenJson>;
 	try {
 		const parsed: unknown = parseJson(rawText);
-		flattened = flattenJson(parsed, separator);
+		flattened = flattenJson(parsed, separator, prefix);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
 		vscode.window.showErrorMessage(`Could not flatten JSON: ${message}`);
@@ -93,6 +105,52 @@ async function getSourceText(source: string): Promise<string | undefined> {
 		default:
 			return undefined;
 	}
+}
+
+type SelectionMode = 'asis' | 'absolute';
+
+interface SelectionModeQuickPickItem extends vscode.QuickPickItem {
+	readonly mode: SelectionMode;
+}
+
+const LAST_SELECTION_MODE_KEY = 'flatten-json.lastSelectionMode';
+
+const SELECTION_MODE_OPTIONS: readonly SelectionModeQuickPickItem[] = [
+	{ label: 'Flatten as-is', description: 'Keys relative to the selection', mode: 'asis' },
+	{ label: 'Flatten with absolute path', description: 'Prefix keys with the path from the document root', mode: 'absolute' },
+];
+
+async function getSelectionMode(context: vscode.ExtensionContext): Promise<SelectionMode | undefined> {
+	const lastMode = context.globalState.get<SelectionMode>(LAST_SELECTION_MODE_KEY);
+	const items = lastMode
+		? [
+			...SELECTION_MODE_OPTIONS.filter(o => o.mode === lastMode),
+			...SELECTION_MODE_OPTIONS.filter(o => o.mode !== lastMode),
+		]
+		: SELECTION_MODE_OPTIONS;
+
+	const picked = await vscode.window.showQuickPick(items, {
+		placeHolder: 'Flatten the selection relative to itself or to the whole document?',
+	});
+	if (!picked) {
+		return undefined;
+	}
+
+	await context.globalState.update(LAST_SELECTION_MODE_KEY, picked.mode);
+	return picked.mode;
+}
+
+// The path of the selected value within the whole document, used to prefix the flattened keys.
+function getSelectionPrefix(): (string | number)[] {
+	const editor = vscode.window.activeTextEditor;
+	if (!editor || editor.selection.isEmpty) {
+		return [];
+	}
+	const startOffset = editor.document.offsetAt(editor.selection.start);
+	const location = getLocation(editor.document.getText(), startOffset);
+	// When the selection begins on a property key, its path points at that property — the
+	// container that owns the selected keys is one level up.
+	return location.isAtPropertyKey ? location.path.slice(0, -1) : location.path;
 }
 
 interface SeparatorQuickPickItem extends vscode.QuickPickItem {
