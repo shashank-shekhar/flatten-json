@@ -4,7 +4,7 @@ All notable changes to the "flatten-json" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [1.0.1] - 2026-07-28
 
 - Tolerate JSONC in the source — trailing commas and `//` / `/* */` comments (common in .NET config and VS Code JSON) are now accepted, via `jsonc-parser`. Also handle a dangling trailing comma on a selection pulled out of an array (e.g. a single `{ … },` element).
 - When flattening an **Active Selection**, ask whether to flatten it as-is or with the absolute path from the document root, so a selected nested value produces fully-qualified keys (e.g. `Parent:Child`).
